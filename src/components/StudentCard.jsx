@@ -1,15 +1,76 @@
-import React, { useState } from 'react';
-import { Trash2, Eraser, Plus } from 'lucide-react';
-import EvolutionStar from './EvolutionStar';
+import React, { useState, useEffect, useRef } from 'react';
+import { Trash2, Eraser, Plus, Award, Star, Crown, Medal } from 'lucide-react';
+import EvolutionStar, { PixelStar } from './EvolutionStar';
+import MedalModal from './MedalModal';
 
-const StudentCard = ({ student, onUpdatePoints, onDelete }) => {
+export const playMagicSound = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        const playNote = (freq, startTime, duration, vol) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        };
+
+        const now = ctx.currentTime;
+        // Fast ascending magical arpeggio
+        playNote(523.25, now, 0.15, 0.1);       // C5
+        playNote(659.25, now + 0.05, 0.15, 0.1); // E5
+        playNote(783.99, now + 0.1, 0.15, 0.1);  // G5
+        playNote(1046.50, now + 0.15, 0.3, 0.15); // C6
+    } catch(e) {
+        console.error("Audio error", e);
+    }
+};
+
+const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) => {
     const [addValue, setAddValue] = useState(1);
     const [subValue, setSubValue] = useState(1);
+    const [flyingStars, setFlyingStars] = useState([]);
+    const [isGlowing, setIsGlowing] = useState(false);
+    const [isMedalModalOpen, setIsMedalModalOpen] = useState(false);
+
+    const prevPointsRef = useRef(student.points);
+
+    useEffect(() => {
+        if (student.points > prevPointsRef.current) {
+            const diff = student.points - prevPointsRef.current;
+            const numStars = Math.min(diff, 8); // cap visual stars
+            const newStars = Array.from({length: numStars}).map((_, i) => ({
+                id: Date.now() + i,
+                delay: Math.random() * 0.2
+            }));
+            
+            setFlyingStars(prev => [...prev, ...newStars]);
+            
+            // Trigger glow when stars hit the name
+            setTimeout(() => {
+                setIsGlowing(true);
+                setTimeout(() => setIsGlowing(false), 500);
+            }, 960);
+
+            setTimeout(() => {
+                setFlyingStars(prev => prev.filter(s => !newStars.find(n => n.id === s.id)));
+            }, 1500);
+        }
+        prevPointsRef.current = student.points;
+    }, [student.points]);
 
     const handleAdd = () => {
         const val = parseInt(addValue);
         if (val > 0) {
             onUpdatePoints(student.id, val);
+            playMagicSound();
             setAddValue(1);
         }
     };
@@ -22,18 +83,136 @@ const StudentCard = ({ student, onUpdatePoints, onDelete }) => {
         }
     };
 
+    let bannerClasses = "bg-white border-blue-100 hover:bg-blue-50";
+    let rankBadge = null;
+    let rankLabel = null;
+    let rankDecoration = null;
+
+    if (rank === 1) {
+        // STAR MASTER: bright royal gold with floating pixel stars
+        bannerClasses = "relative overflow-hidden bg-gradient-to-r from-yellow-100 via-amber-50 to-yellow-100 border-l-[6px] border-l-yellow-400 border-yellow-200 shadow-[inset_0_0_40px_rgba(234,179,8,0.12)]";
+        rankBadge = (
+            <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-amber-600 border-2 border-amber-700 shadow-[0_0_18px_rgba(250,204,21,0.9)] animate-bounce-slow shrink-0">
+                <Star size={22} className="text-white drop-shadow fill-white" strokeWidth={2} />
+            </div>
+        );
+        rankLabel = (
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-900 bg-gradient-to-r from-yellow-300 to-amber-400 px-1.5 py-0.5 rounded-sm border border-amber-700 shadow-sm">
+                ★ Star Master
+            </span>
+        );
+        rankDecoration = (
+            <>
+                <div aria-hidden className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.95),transparent_30%),radial-gradient(circle_at_80%_30%,rgba(250,204,21,0.5),transparent_35%)]" />
+                <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '10%', bottom: '-15%', animationDelay: '0s' }}><PixelStar level={2} /></span>
+                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '22%', bottom: '-15%', animationDelay: '1.1s' }}><PixelStar level={1} /></span>
+                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '36%', bottom: '-15%', animationDelay: '2.3s' }}><PixelStar level={2} /></span>
+                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '50%', bottom: '-15%', animationDelay: '0.7s' }}><PixelStar level={1} /></span>
+                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '64%', bottom: '-15%', animationDelay: '3.1s' }}><PixelStar level={2} /></span>
+                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '78%', bottom: '-15%', animationDelay: '1.7s' }}><PixelStar level={1} /></span>
+                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '90%', bottom: '-15%', animationDelay: '2.8s' }}><PixelStar level={2} /></span>
+                </div>
+            </>
+        );
+    } else if (rank === 2) {
+        // GOLD INGOT: soft metallic with gentle sweeping light
+        bannerClasses = "relative overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#fefce8_40%,#fef9c3_65%,#fef3c7_100%)] border-l-[6px] border-l-amber-300 border-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-1px_0_rgba(217,119,6,0.1)]";
+        rankBadge = (
+            <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-yellow-100 via-amber-300 to-amber-700 border-2 border-amber-800 shadow-[0_0_14px_rgba(180,83,9,0.7)] shrink-0">
+                <Crown size={22} className="text-amber-900 drop-shadow" strokeWidth={2.5} />
+            </div>
+        );
+        rankLabel = (
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-950 bg-yellow-100 px-1.5 py-0.5 rounded-sm border border-amber-700">
+                2nd · Gold
+            </span>
+        );
+        rankDecoration = (
+            <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden animate-ingot-shine bg-[linear-gradient(110deg,transparent_42%,rgba(255,255,255,0.45)_49%,rgba(255,255,255,0.6)_50%,rgba(255,255,255,0.45)_51%,transparent_58%)] bg-[length:250%_100%]" />
+        );
+    } else if (rank === 3) {
+        // Iron / Silver: steel gradient with polish shine
+        bannerClasses = "relative bg-gradient-to-r from-slate-200 via-gray-100 to-slate-200 border-l-[6px] border-l-slate-500 border-slate-300 shadow-[inset_0_0_40px_rgba(100,116,139,0.2)] animate-banner-shine";
+        rankBadge = (
+            <div className="flex items-center justify-center w-11 h-11 rounded-full bg-gradient-to-br from-slate-200 via-white to-slate-400 border-2 border-slate-600 shadow-[0_0_12px_rgba(100,116,139,0.5)] shrink-0">
+                <Medal size={22} className="text-slate-700 drop-shadow" strokeWidth={2.5} />
+            </div>
+        );
+        rankLabel = (
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 bg-slate-200 px-1.5 py-0.5 rounded-sm border border-slate-400">
+                3rd · Iron
+            </span>
+        );
+        rankDecoration = (
+            <div aria-hidden className="absolute inset-0 pointer-events-none opacity-25 bg-[radial-gradient(circle_at_18%_50%,rgba(255,255,255,0.9),transparent_25%),radial-gradient(circle_at_82%_35%,rgba(100,116,139,0.3),transparent_30%)]" />
+        );
+    }
+
     return (
-        <div className="group flex items-center justify-between p-4 hover:bg-blue-50 transition-colors bg-white border-b border-blue-100 last:border-b-0">
+        <div className={`group flex items-center justify-between p-4 transition-colors border-b last:border-b-0 relative ${bannerClasses}`}>
+            {rankDecoration}
             {/* Left: Name */}
-            <div className="w-1/4 min-w-[200px] flex items-center gap-3">
-                <button
-                    onClick={onDelete}
-                    className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
-                    title="Delete"
-                >
-                    <Trash2 size={18} />
-                </button>
-                <h3 className="font-bold text-xl text-blue-900 font-mono text-left truncate">{student.name}</h3>
+            <div className="w-1/3 min-w-[200px] flex items-center gap-3 relative z-10">
+                <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button
+                        onClick={() => setIsMedalModalOpen(true)}
+                        className="text-amber-500 hover:text-amber-600 hover:brightness-110 transition-colors p-1"
+                        title="Award Medal"
+                    >
+                        <Award size={18} />
+                    </button>
+                    <button
+                        onClick={onDelete}
+                        className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                        title="Delete"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                </div>
+                {rankBadge}
+                <div className="flex flex-col gap-1 w-full min-w-0">
+                    <div className="flex items-center relative gap-2">
+                        <h3 className={`font-bold text-xl font-mono text-left truncate transition-all duration-300 ${isGlowing ? 'drop-shadow-[0_0_15px_rgba(250,204,21,1)] text-yellow-500 scale-110' : 'text-blue-900'}`}>
+                            {student.name}
+                        </h3>
+                        {rankLabel}
+
+                        {/* Flying Stars Target Zone - lands just past the name */}
+                        {flyingStars.length > 0 && (
+                            <div className="absolute left-full top-1/2 -translate-y-1/2 w-0 h-0 flex items-center z-[60] pointer-events-none">
+                                {flyingStars.map(star => (
+                                    <div
+                                        key={star.id}
+                                        className="animate-fly-to-target absolute"
+                                        style={{
+                                            animationDelay: `${star.delay}s`
+                                        }}
+                                    >
+                                        <PixelStar level={1} />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Student Medals - prominent animated pills */}
+                    {(student.medals && student.medals.length > 0) && (
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                            {student.medals.map(m => (
+                                <div
+                                    key={m.id}
+                                    title={m.name}
+                                    className="group/medal relative inline-flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-200 via-amber-100 to-yellow-200 border border-amber-500 shadow-[0_2px_0_0_rgba(180,83,9,0.7)] hover:shadow-[0_3px_0_0_rgba(180,83,9,0.9)] hover:-translate-y-0.5 transition-all overflow-hidden"
+                                >
+                                    <span aria-hidden className="absolute inset-0 opacity-0 group-hover/medal:opacity-100 transition-opacity bg-gradient-to-r from-transparent via-white/70 to-transparent animate-banner-shine-fast pointer-events-none" />
+                                    <span className="relative text-base drop-shadow-sm leading-none">{m.icon}</span>
+                                    <span className="relative text-[10px] font-black uppercase tracking-wider text-amber-900 font-mono leading-none">{m.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Center: Visual Progress */}
@@ -55,13 +234,15 @@ const StudentCard = ({ student, onUpdatePoints, onDelete }) => {
                             onChange={(e) => setAddValue(e.target.value)}
                             className="w-12 h-6 px-1 text-center font-bold text-green-900 bg-white border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 font-mono text-sm"
                         />
-                        <button
-                            onClick={handleAdd}
-                            disabled={!addValue || parseInt(addValue) <= 0}
-                            className="w-8 h-6 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded transition-transform active:scale-95 disabled:opacity-50"
-                        >
-                            <Plus size={16} strokeWidth={3} />
-                        </button>
+                        <div className="relative">
+                            <button
+                                onClick={handleAdd}
+                                disabled={!addValue || parseInt(addValue) <= 0}
+                                className="w-8 h-6 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded transition-transform active:scale-95 disabled:opacity-50"
+                            >
+                                <Plus size={16} strokeWidth={3} />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Subtract Controls */}
@@ -83,6 +264,13 @@ const StudentCard = ({ student, onUpdatePoints, onDelete }) => {
                     </div>
                 </div>
             </div>
+            
+            <MedalModal 
+                isOpen={isMedalModalOpen} 
+                onClose={() => setIsMedalModalOpen(false)} 
+                onAwardMedal={onAddMedal} 
+                studentName={student.name}
+            />
         </div>
     );
 };
