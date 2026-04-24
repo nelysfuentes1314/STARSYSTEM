@@ -38,7 +38,8 @@ function App() {
           students: [...group.students, {
             id: uuidv4(),
             name: name,
-            points: 0
+            points: 0,
+            medals: []
           }]
         };
       }
@@ -67,6 +68,61 @@ function App() {
             if (student.id === studentId) {
               const newPoints = Math.max(0, student.points + amount);
               return { ...student, points: newPoints };
+            }
+            return student;
+          })
+        };
+      }
+      return group;
+    }));
+  };
+
+  const updateAllPoints = (groupId, amount) => {
+    setGroups(groups.map(group => {
+      if (group.id === groupId) {
+        return {
+          ...group,
+          students: group.students.map(student => {
+            const newPoints = Math.max(0, student.points + amount);
+            return { ...student, points: newPoints };
+          })
+        };
+      }
+      return group;
+    }));
+  };
+
+  const transferPoints = (groupId, fromStudentId, toStudentId, amount) => {
+    setGroups(groups.map(group => {
+      if (group.id === groupId) {
+        // Need to ensure we only transfer what is available?
+        // Actually, just subtract and max at 0.
+        return {
+          ...group,
+          students: group.students.map(student => {
+            if (student.id === fromStudentId) {
+              return { ...student, points: Math.max(0, student.points - amount) };
+            }
+            if (student.id === toStudentId) {
+              return { ...student, points: student.points + amount };
+            }
+            return student;
+          })
+        };
+      }
+      return group;
+    }));
+  };
+
+  const addMedal = (groupId, studentId, medal) => {
+    setGroups(groups.map(group => {
+      if (group.id === groupId) {
+        return {
+          ...group,
+          students: group.students.map(student => {
+            if (student.id === studentId) {
+              const currentMedals = student.medals || [];
+              return { ...student, medals: [...currentMedals, { ...medal, id: uuidv4() }] };
             }
             return student;
           })
@@ -113,7 +169,10 @@ function App() {
                 groups={groups}
                 onAddStudent={addStudent}
                 onUpdatePoints={updatePoints}
+                onUpdateAllPoints={updateAllPoints}
+                onTransferPoints={transferPoints}
                 onDeleteStudent={deleteStudent}
+                onAddMedal={addMedal}
               />
             } />
           </Routes>

@@ -75,27 +75,64 @@ const getStarDesign = (level) => {
                 '2': 'hsl(140, 100%, 55%)',
                 '3': 'hsl(140, 100%, 85%)'
             };
-            design.className += ' drop-shadow-[0_0_20px_rgba(34,197,94,0.8)] animate-spin-slow';
+            design.className += ' drop-shadow-[0_0_20px_rgba(34,197,94,0.8)] animate-tweak';
             break;
-        default: // 160+ pts (Level 6+)
-            design.scale = 4.0 + (level - 6) * 0.5;
+        case 6: // 160 pts (Level 6 - Diamond)
+            design.scale = 4.0;
             design.colors = {
-                '1': 'hsl(300, 90%, 20%)',
-                '2': 'hsl(300, 100%, 50%)',
+                '1': 'hsl(190, 100%, 25%)',
+                '2': 'hsl(180, 100%, 65%)',
+                '3': 'hsl(180, 100%, 95%)'
+            };
+            design.className += ' drop-shadow-[0_0_25px_rgba(34,211,238,0.9)] animate-tweak';
+            break;
+        case 7: // 320 pts (Level 7 - Fire)
+            design.scale = 4.8;
+            design.colors = {
+                '1': 'hsl(15, 100%, 35%)',
+                '2': 'hsl(35, 100%, 60%)',
+                '3': 'hsl(60, 100%, 80%)'
+            };
+            design.className += ' drop-shadow-[0_0_30px_rgba(249,115,22,1)] animate-pulse';
+            break;
+        case 8: // 640 pts (Level 8 - Amethyst)
+            design.scale = 5.6;
+            design.colors = {
+                '1': 'hsl(290, 100%, 30%)',
+                '2': 'hsl(300, 100%, 60%)',
+                '3': 'hsl(320, 100%, 85%)'
+            };
+            design.className += ' drop-shadow-[0_0_35px_rgba(217,70,239,1)] animate-color-shift';
+            break;
+        case 9: // 1280 pts (Level 9 - Galactic)
+            design.scale = 3.5; // Scaled down because it will be a 4-star cluster
+            design.isCluster = true;
+            design.colors = {
+                '1': 'hsl(230, 100%, 20%)',
+                '2': 'hsl(260, 100%, 60%)',
+                '3': 'hsl(310, 100%, 90%)'
+            };
+            design.className += ' drop-shadow-[0_0_20px_rgba(139,92,246,1)] animate-tweak';
+            break;
+        default: // 2560+ pts (Level 10+)
+            design.scale = 7.0 + (level - 10) * 0.5;
+            design.colors = {
+                '1': 'hsl(50, 100%, 30%)',
+                '2': 'hsl(50, 100%, 60%)',
                 '3': 'white'
             };
-            design.className += ' drop-shadow-[0_0_25px_rgba(255,255,255,1)] animate-pulse';
+            design.className += ' drop-shadow-[0_0_50px_rgba(250,204,21,1)] animate-glow';
             break;
     }
     return design;
 };
 
-const PixelStar = ({ level }) => {
+export const PixelStar = ({ level }) => {
     const design = getStarDesign(level);
     const height = NORMAL_STAR.length;
     const width = NORMAL_STAR[0].length;
 
-    return (
+    const renderStarSVG = () => (
         <svg
             viewBox={`0 0 ${width} ${height}`}
             style={{ width: `${width * design.scale}px`, height: `${height * design.scale}px` }}
@@ -110,6 +147,19 @@ const PixelStar = ({ level }) => {
             )}
         </svg>
     );
+
+    if (design.isCluster) {
+        return (
+            <div className="grid grid-cols-2 gap-1 animate-color-shift">
+                {renderStarSVG()}
+                {renderStarSVG()}
+                {renderStarSVG()}
+                {renderStarSVG()}
+            </div>
+        );
+    }
+
+    return renderStarSVG();
 };
 
 export const getStarsDistribution = (points) => {
