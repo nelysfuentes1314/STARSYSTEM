@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserPlus } from 'lucide-react';
+import { ArrowLeft, UserPlus, ArrowDownUp, Gift, Swords } from 'lucide-react';
 import StudentCard from './StudentCard';
+import StarChallengeModal from './StarChallengeModal';
+import GroupAwardModal from './GroupAwardModal';
 
-const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onDeleteStudent }) => {
+const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onUpdateAllPoints, onTransferPoints, onDeleteStudent, onAddMedal }) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const group = groups.find(g => g.id === id);
     const [newStudentName, setNewStudentName] = useState('');
+    const [sortBy, setSortBy] = useState('name');
+    const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
+    const [isAwardModalOpen, setIsAwardModalOpen] = useState(false);
 
     if (!group) {
         return (
@@ -24,6 +29,27 @@ const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onDeleteStudent }) 
             onAddStudent(group.id, newStudentName.trim());
             setNewStudentName('');
         }
+    };
+
+    const handleAwardAll = (amount) => {
+        onUpdateAllPoints(group.id, amount);
+    };
+
+    const sortedStudents = [...group.students].sort((a, b) => {
+        if (sortBy === 'stars_desc') {
+            return b.points - a.points;
+        }
+        return a.name.localeCompare(b.name);
+    });
+
+    const uniquePoints = [...new Set(group.students.map(s => s.points))].sort((a, b) => b - a);
+    const getRank = (points) => {
+        if (points === 0) return null;
+        const index = uniquePoints.indexOf(points);
+        if (index === 0) return 1;
+        if (index === 1) return 2;
+        if (index === 2) return 3;
+        return null;
     };
 
     return (
@@ -46,13 +72,39 @@ const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onDeleteStudent }) 
             <div className="bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] border-4 border-blue-900">
                 {/* Tabs / Toolbar */}
                 {/* Tabs / Toolbar - Redesigned as Arcade Panel */}
-                <div className="bg-blue-100 border-b-4 border-blue-900 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="text-xl font-bold text-blue-900 flex items-center gap-3 bg-white px-4 py-2 border-2 border-blue-900 shadow-[4px_4px_0px_0px_rgba(30,58,138,1)] transform -rotate-1">
+                <div className="bg-blue-100 border-b-4 border-blue-900 p-6 flex flex-col lg:flex-row justify-between items-center gap-4">
+                    <div className="text-xl font-bold text-blue-900 flex items-center gap-3 bg-white px-4 py-2 border-2 border-blue-900 shadow-[4px_4px_0px_0px_rgba(30,58,138,1)] transform -rotate-1 shrink-0">
                         <img src="/icons/pixel-star-cool.svg" alt="Cool Star" className="w-8 h-8 animate-spin-slow" />
                         Classroom Star Chart
                     </div>
+                    
+                    <div className="flex gap-2 flex-wrap justify-center flex-grow">
+                        <button
+                            onClick={() => setSortBy(sortBy === 'name' ? 'stars_desc' : 'name')}
+                            className="bg-purple-500 text-white px-3 py-2 border-b-4 border-purple-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2 font-bold uppercase tracking-wide text-xs hover:bg-purple-400 rounded-sm"
+                        >
+                            <ArrowDownUp size={16} />
+                            Sort: {sortBy === 'name' ? 'A-Z' : 'Stars'}
+                        </button>
+                        
+                        <button
+                            onClick={() => setIsAwardModalOpen(true)}
+                            className="bg-yellow-500 text-blue-900 px-3 py-2 border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2 font-black uppercase tracking-wide text-xs hover:bg-yellow-400 rounded-sm"
+                        >
+                            <Gift size={16} />
+                            Award All
+                        </button>
 
-                    <form onSubmit={handleAddStudent} className="flex gap-2 w-full md:w-auto bg-yellow-100 p-2 rounded-lg border-2 border-dashed border-yellow-600">
+                        <button
+                            onClick={() => setIsChallengeModalOpen(true)}
+                            className="bg-red-500 text-white px-3 py-2 border-b-4 border-red-700 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2 font-black uppercase tracking-wide text-xs hover:bg-red-400 rounded-sm"
+                        >
+                            <Swords size={16} />
+                            Challenge!
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleAddStudent} className="flex gap-2 w-full md:w-auto bg-yellow-100 p-2 rounded-lg border-2 border-dashed border-yellow-600 shrink-0">
                         <input
                             type="text"
                             value={newStudentName}
@@ -80,18 +132,33 @@ const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onDeleteStudent }) 
                         </div>
                     ) : (
                         <div className="flex flex-col gap-0 divide-y-2 divide-blue-100 bg-white border-2 border-blue-900 shadow-[4px_4px_0px_0px_rgba(30,58,138,0.2)]">
-                            {group.students.map(student => (
+                            {sortedStudents.map(student => (
                                 <StudentCard
                                     key={student.id}
                                     student={student}
+                                    rank={getRank(student.points)}
                                     onUpdatePoints={(studentId, change) => onUpdatePoints(group.id, studentId, change)}
                                     onDelete={() => onDeleteStudent(group.id, student.id)}
+                                    onAddMedal={(medal) => onAddMedal(group.id, student.id, medal)}
                                 />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+
+            <StarChallengeModal 
+                isOpen={isChallengeModalOpen}
+                onClose={() => setIsChallengeModalOpen(false)}
+                students={group.students}
+                onTransfer={(fromId, toId, amount) => onTransferPoints(group.id, fromId, toId, amount)}
+            />
+
+            <GroupAwardModal
+                isOpen={isAwardModalOpen}
+                onClose={() => setIsAwardModalOpen(false)}
+                onAward={handleAwardAll}
+            />
         </div>
     );
 };
