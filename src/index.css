@@ -11,6 +11,7 @@
   --animate-banner-shine-fast: banner-shine 1.2s linear infinite;
   --animate-ingot-shine: ingot-shine 5s ease-in-out infinite;
   --animate-star-float: star-float 5s ease-in-out infinite;
+  --animate-easter-egg: easter-egg 5s ease-out forwards;
 
   @keyframes ingot-shine {
     0% { background-position: -80% 0; }
@@ -47,6 +48,13 @@
     50% { filter: drop-shadow(0 0 30px rgba(255, 255, 255, 1)) brightness(1.2); transform: scale(1.05); }
   }
 
+  @keyframes easter-egg {
+    0%   { opacity: 0; transform: scale(0.95); }
+    8%   { opacity: 1; transform: scale(1); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.02); }
+  }
+
   @keyframes fly-to-target {
     0% { transform: translate(220px, -40px) scale(0) rotate(0deg); opacity: 0; filter: drop-shadow(0 0 5px yellow); }
     15% { transform: translate(220px, -40px) scale(1.4) rotate(90deg); opacity: 1; filter: drop-shadow(0 0 20px yellow); }
@@ -57,6 +65,10 @@
 }
 
 @layer utilities {
+  .animate-easter-egg {
+    animation: easter-egg 5s ease-out forwards;
+  }
+
   .animate-fly-to-target {
     animation: fly-to-target 1.2s cubic-bezier(0.25, 1, 0.5, 1) both;
     pointer-events: none;

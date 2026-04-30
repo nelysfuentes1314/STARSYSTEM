@@ -127,16 +127,19 @@ const getStarDesign = (level) => {
     return design;
 };
 
-export const PixelStar = ({ level }) => {
+export const PixelStar = ({ level, noAnim = false }) => {
     const design = getStarDesign(level);
     const height = NORMAL_STAR.length;
     const width = NORMAL_STAR[0].length;
+    const className = noAnim
+        ? design.className.replace(/animate-\S+/g, '').replace(/\s+/g, ' ').trim()
+        : design.className;
 
     const renderStarSVG = () => (
         <svg
             viewBox={`0 0 ${width} ${height}`}
             style={{ width: `${width * design.scale}px`, height: `${height * design.scale}px` }}
-            className={design.className}
+            className={className}
             title={`Level ${level} Star`}
         >
             {NORMAL_STAR.map((row, y) =>

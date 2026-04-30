@@ -7,16 +7,35 @@ import GroupDetail from './components/GroupDetail';
 import DataManager from './components/DataManager';
 import './index.css'
 
+const DEFAULT_SETTINGS = { easterEgg67Enabled: true, bannersEnabled: true };
+
 function App() {
   const [groups, setGroups] = useState(() => {
     const saved = localStorage.getItem('stars-system-data');
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('stars-system-settings');
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+
   // Auto-save to localStorage
   useEffect(() => {
     localStorage.setItem('stars-system-data', JSON.stringify(groups));
   }, [groups]);
+
+  useEffect(() => {
+    localStorage.setItem('stars-system-settings', JSON.stringify(settings));
+  }, [settings]);
+
+  const updateSetting = (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
 
   const addGroup = (name) => {
     setGroups([...groups, {
@@ -114,6 +133,40 @@ function App() {
     }));
   };
 
+  const updateMedal = (groupId, studentId, medalId, updates) => {
+    setGroups(groups.map(group => {
+      if (group.id !== groupId) return group;
+      return {
+        ...group,
+        students: group.students.map(student => {
+          if (student.id !== studentId) return student;
+          return {
+            ...student,
+            medals: (student.medals || []).map(m =>
+              m.id === medalId ? { ...m, ...updates } : m
+            )
+          };
+        })
+      };
+    }));
+  };
+
+  const deleteMedal = (groupId, studentId, medalId) => {
+    setGroups(groups.map(group => {
+      if (group.id !== groupId) return group;
+      return {
+        ...group,
+        students: group.students.map(student => {
+          if (student.id !== studentId) return student;
+          return {
+            ...student,
+            medals: (student.medals || []).filter(m => m.id !== medalId)
+          };
+        })
+      };
+    }));
+  };
+
   const addMedal = (groupId, studentId, medal) => {
     setGroups(groups.map(group => {
       if (group.id === groupId) {
@@ -162,6 +215,8 @@ function App() {
                 groups={groups}
                 onAddGroup={addGroup}
                 onDeleteGroup={deleteGroup}
+                settings={settings}
+                onUpdateSetting={updateSetting}
               />
             } />
             <Route path="/group/:id" element={
@@ -173,6 +228,9 @@ function App() {
                 onTransferPoints={transferPoints}
                 onDeleteStudent={deleteStudent}
                 onAddMedal={addMedal}
+                onUpdateMedal={updateMedal}
+                onDeleteMedal={deleteMedal}
+                settings={settings}
               />
             } />
           </Routes>

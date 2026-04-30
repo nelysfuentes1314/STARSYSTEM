@@ -3,52 +3,46 @@ import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
     {
-        tag: 'Rankings',
+        tag: 'Toolkit',
         color: 'bg-yellow-400 text-yellow-900',
-        title: 'Top 3 Special Banners',
-        desc: 'The top 3 students with the most stars now stand out with special banners! 1st place earns the ★ Star Master banner in gold, 2nd place gets a shiny Gold banner, and 3rd place gets a Silver banner — each with its own badge.',
+        title: '🛠 Toolkit — Timer, Groups & Picker',
+        desc: 'New Toolkit button at the top-right of every class. Pick one of three tools: a countdown Timer with quick presets and an alarm; a Group Maker that splits the class into random teams of any size; and a Random Picker that rolls one or more students at random. Each opens from a single landing screen — pick what you need.',
     },
     {
-        tag: 'Visual',
-        color: 'bg-sky-400 text-sky-900',
-        title: 'Flying Stars When Giving Points',
-        desc: 'Every time a student earns stars, little stars fly across the screen toward their name. When you reward the whole class at once, every student sees the stars flying at the same time!',
+        tag: 'Challenges',
+        color: 'bg-red-500 text-white',
+        title: 'Countdown Blizzard ❄ — new challenge mode',
+        desc: 'The "Challenge!" button now lets you choose between Duels (the classic 1-vs-1) and the brand-new Countdown Blizzard. Pick a stake, a duration (10s · 30s · 1m · 2m) and the participants. The clock starts, and the first student to answer correctly wins the stake. If nobody answers in time, every participant loses the stake. Great for fast-paced review.',
     },
     {
-        tag: 'Sound',
-        color: 'bg-purple-400 text-white',
-        title: 'Magic Sound Effect',
-        desc: 'A short, fun sound plays every time stars are given out — it works right away, nothing extra needed. The sound also plays when you reward the whole class at once.',
+        tag: 'Settings',
+        color: 'bg-blue-500 text-white',
+        title: '⚙️ Settings panel',
+        desc: 'A new Settings button next to "What\'s new" lets you tailor the experience: turn the Top-3 rank banners on/off (handy if you prefer a uniform look), and enable or disable the secret 67 Easter Egg. Settings persist across sessions.',
     },
     {
         tag: 'Medals',
         color: 'bg-amber-500 text-white',
-        title: 'Medal System',
-        desc: 'Move your mouse over any student to reveal an Award button. Click it to give them a medal: ⭐ Good Behavior, ✋ Participation, or make your own with a custom name and emoji. Medals show up as shiny gold badges under the student\'s name.',
+        title: 'Edit & remove medals',
+        desc: 'Medals are now interactive. Double-click any medal pill to edit its name and icon. Click it four times in quick succession to remove it. Past awards no longer get stuck — fix typos or retire a medal anytime.',
     },
     {
-        tag: 'Class Tool',
-        color: 'bg-green-500 text-white',
-        title: 'Award All — Give Stars to Everyone',
-        desc: 'The "Award All" button lets you pick a number of stars and give them to every student in the class at the same time — great for group activities or when the whole class deserves a reward.',
+        tag: 'Sound',
+        color: 'bg-purple-400 text-white',
+        title: 'New audio cues',
+        desc: 'Removing stars now plays a short descending tone so subtractions feel deliberate. When a challenge winner is confirmed (Duel or Blizzard), a triumphant fanfare plays — a quick rising arpeggio into a sustained C-major chord with a sparkle on top.',
     },
     {
-        tag: 'Class Tool',
-        color: 'bg-red-500 text-white',
-        title: 'Star Challenge ⚔️',
-        desc: 'A fun classroom game: pick two students and decide how many stars are on the line. The winner takes the stars from the other. Perfect for review games, quick quizzes, or friendly competitions!',
-    },
-    {
-        tag: 'Display',
+        tag: 'UX',
         color: 'bg-slate-500 text-white',
-        title: 'Sort Student List',
-        desc: 'Use the Sort button to organize your students by name (A to Z) or by who has the most stars. Great for quickly finding a student or seeing who\'s leading the class.',
+        title: 'Default sort by stars',
+        desc: 'Open any class and students are now ranked by stars (highest first) by default. The Sort button still toggles back to A–Z whenever you want.',
     },
     {
-        tag: 'Stars',
-        color: 'bg-blue-500 text-white',
-        title: 'More Star Levels',
-        desc: 'There are now even more star levels for students to reach! New ranks include Diamond, Fire, Amethyst, Galactic, and the legendary Golden Titan — something to work toward for your highest achievers.',
+        tag: 'Polish',
+        color: 'bg-green-500 text-white',
+        title: 'Star Master banner glow-up',
+        desc: 'The 1st-place banner now floats a richer mix of stars — gold, cyan, purple, red and green pixel stars at varied sizes and timings, drifting upward without distracting jitter. Top spot looks the part.',
     },
 ];
 
@@ -67,7 +61,7 @@ const WhatsNewModal = ({ isOpen, onClose }) => {
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-white font-mono tracking-tight uppercase">What's New</h2>
-                            <p className="text-blue-300 text-xs font-medium">Latest update · 8 new features</p>
+                            <p className="text-blue-300 text-xs font-medium">Playground branch · 7 new updates</p>
                         </div>
                     </div>
                     <button

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Users, School, Trash2, Sparkles } from 'lucide-react';
+import { Plus, Users, School, Trash2, Sparkles, Settings } from 'lucide-react';
 import WhatsNewModal from './WhatsNewModal';
+import SettingsModal from './SettingsModal';
 
-const Dashboard = ({ groups, onAddGroup, onDeleteGroup }) => {
+const Dashboard = ({ groups, onAddGroup, onDeleteGroup, settings, onUpdateSetting }) => {
     const [newGroupName, setNewGroupName] = useState('');
     const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const handleAddGroup = (e) => {
         e.preventDefault();
@@ -22,13 +24,23 @@ const Dashboard = ({ groups, onAddGroup, onDeleteGroup }) => {
                 <div className="relative z-10">
                     <h2 className="text-3xl font-bold font-serif mb-2">School Dashboard</h2>
                     <p className="text-blue-100 opacity-90 mb-4">Manage your classes and groups from here.</p>
-                    <button
-                        onClick={() => setIsWhatsNewOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400 hover:bg-yellow-300 hover:brightness-105 text-yellow-900 font-black text-xs uppercase tracking-wider border-2 border-yellow-600 shadow-[0_3px_0_0_rgba(161,98,7,0.8)] hover:shadow-[0_4px_0_0_rgba(161,98,7,0.9)] hover:-translate-y-0.5 transition-all"
-                    >
-                        <Sparkles size={14} />
-                        What's new
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setIsWhatsNewOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400 hover:bg-yellow-300 hover:brightness-105 text-yellow-900 font-black text-xs uppercase tracking-wider border-2 border-yellow-600 shadow-[0_3px_0_0_rgba(161,98,7,0.8)] hover:shadow-[0_4px_0_0_rgba(161,98,7,0.9)] hover:-translate-y-0.5 transition-all"
+                        >
+                            <Sparkles size={14} />
+                            What's new
+                        </button>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white hover:bg-blue-50 text-blue-900 font-black text-xs uppercase tracking-wider border-2 border-blue-300 shadow-[0_3px_0_0_rgba(30,58,138,0.5)] hover:shadow-[0_4px_0_0_rgba(30,58,138,0.7)] hover:-translate-y-0.5 transition-all"
+                            title="Settings"
+                        >
+                            <Settings size={14} />
+                            Settings
+                        </button>
+                    </div>
                 </div>
                 <img
                     src="/icons/ninos.svg"
@@ -43,7 +55,7 @@ const Dashboard = ({ groups, onAddGroup, onDeleteGroup }) => {
                             type="text"
                             value={newGroupName}
                             onChange={(e) => setNewGroupName(e.target.value)}
-                            placeholder="New Group Name (e.g., History 3B)"
+                            placeholder="New Group Name (e.g., Basic I #1)"
                             className="flex-grow px-4 py-2 rounded-md bg-white/90 text-blue-900 placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-red-500 font-medium"
                         />
                         <button
@@ -97,6 +109,12 @@ const Dashboard = ({ groups, onAddGroup, onDeleteGroup }) => {
                 )}
             </div>
         <WhatsNewModal isOpen={isWhatsNewOpen} onClose={() => setIsWhatsNewOpen(false)} />
+        <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            settings={settings}
+            onUpdateSetting={onUpdateSetting}
+        />
         </div>
     );
 };
