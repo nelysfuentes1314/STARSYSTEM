@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserPlus, ArrowDownUp, Gift, Swords } from 'lucide-react';
+import { ArrowLeft, UserPlus, ArrowDownUp, Gift, Swords, Wrench } from 'lucide-react';
 import StudentCard from './StudentCard';
 import StarChallengeModal from './StarChallengeModal';
 import GroupAwardModal from './GroupAwardModal';
+import ToolkitModal from './ToolkitModal';
 
-const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onUpdateAllPoints, onTransferPoints, onDeleteStudent, onAddMedal }) => {
+const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onUpdateAllPoints, onTransferPoints, onDeleteStudent, onAddMedal, onUpdateMedal, onDeleteMedal, settings }) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const group = groups.find(g => g.id === id);
     const [newStudentName, setNewStudentName] = useState('');
-    const [sortBy, setSortBy] = useState('name');
+    const [sortBy, setSortBy] = useState('stars_desc');
     const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
     const [isAwardModalOpen, setIsAwardModalOpen] = useState(false);
+    const [isToolkitOpen, setIsToolkitOpen] = useState(false);
 
     if (!group) {
         return (
@@ -55,18 +57,29 @@ const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onUpdateAllPoints, 
     return (
         <div className="animate-in slide-in-from-right duration-300">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-                <button
-                    onClick={() => navigate('/')}
-                    className="p-2 hover:bg-gray-200 rounded-full transition text-blue-900"
-                    title="Go Back"
-                >
-                    <ArrowLeft size={28} />
-                </button>
-                <div>
-                    <h2 className="text-4xl font-bold text-blue-900 font-serif">{group.name}</h2>
-                    <p className="text-gray-500">{group.students.length} enrolled students</p>
+            <div className="flex items-center justify-between gap-4 mb-8">
+                <div className="flex items-center gap-4 min-w-0">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="p-2 hover:bg-gray-200 rounded-full transition text-blue-900 shrink-0"
+                        title="Go Back"
+                    >
+                        <ArrowLeft size={28} />
+                    </button>
+                    <div className="min-w-0">
+                        <h2 className="text-4xl font-bold text-blue-900 font-serif truncate">{group.name}</h2>
+                        <p className="text-gray-500">{group.students.length} enrolled students</p>
+                    </div>
                 </div>
+
+                <button
+                    onClick={() => setIsToolkitOpen(true)}
+                    className="shrink-0 inline-flex items-center gap-2 bg-yellow-400 text-blue-900 px-5 py-3 border-4 border-blue-900 shadow-[6px_6px_0px_0px_rgba(30,58,138,1)] hover:bg-yellow-300 hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_0px_rgba(30,58,138,1)] active:translate-y-1 active:shadow-none font-black uppercase tracking-widest text-sm font-mono transition-all"
+                    title="Open Toolkit"
+                >
+                    <Wrench size={18} strokeWidth={2.5} />
+                    <span className="hidden sm:inline">Toolkit</span>
+                </button>
             </div>
 
             <div className="bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] border-4 border-blue-900">
@@ -140,6 +153,9 @@ const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onUpdateAllPoints, 
                                     onUpdatePoints={(studentId, change) => onUpdatePoints(group.id, studentId, change)}
                                     onDelete={() => onDeleteStudent(group.id, student.id)}
                                     onAddMedal={(medal) => onAddMedal(group.id, student.id, medal)}
+                                    onUpdateMedal={(medalId, updates) => onUpdateMedal(group.id, student.id, medalId, updates)}
+                                    onDeleteMedal={(medalId) => onDeleteMedal(group.id, student.id, medalId)}
+                                    settings={settings}
                                 />
                             ))}
                         </div>
@@ -147,17 +163,24 @@ const GroupDetail = ({ groups, onAddStudent, onUpdatePoints, onUpdateAllPoints, 
                 </div>
             </div>
 
-            <StarChallengeModal 
+            <StarChallengeModal
                 isOpen={isChallengeModalOpen}
                 onClose={() => setIsChallengeModalOpen(false)}
                 students={group.students}
                 onTransfer={(fromId, toId, amount) => onTransferPoints(group.id, fromId, toId, amount)}
+                onUpdatePoints={(studentId, amount) => onUpdatePoints(group.id, studentId, amount)}
             />
 
             <GroupAwardModal
                 isOpen={isAwardModalOpen}
                 onClose={() => setIsAwardModalOpen(false)}
                 onAward={handleAwardAll}
+            />
+
+            <ToolkitModal
+                isOpen={isToolkitOpen}
+                onClose={() => setIsToolkitOpen(false)}
+                students={group.students}
             />
         </div>
     );

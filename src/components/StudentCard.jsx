@@ -8,7 +8,7 @@ export const playMagicSound = () => {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
         const ctx = new AudioContext();
-        
+
         const playNote = (freq, startTime, duration, vol) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -33,14 +33,88 @@ export const playMagicSound = () => {
     }
 };
 
-const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) => {
+export const playWinnerSound = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+
+        const playNote = (freq, startTime, duration, vol = 0.1, type = 'sine') => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        };
+
+        const now = ctx.currentTime;
+        // Victory fanfare: rising triplet → big sustained C-major chord
+        playNote(523.25, now,        0.12, 0.10);  // C5
+        playNote(659.25, now + 0.12, 0.12, 0.10);  // E5
+        playNote(783.99, now + 0.24, 0.12, 0.10);  // G5
+        // Big triumphant chord
+        playNote(1046.50, now + 0.36, 0.8, 0.13);  // C6
+        playNote(1318.51, now + 0.36, 0.8, 0.08);  // E6
+        playNote(1567.98, now + 0.36, 0.8, 0.08);  // G6
+        // Sparkle on top
+        playNote(2093.00, now + 0.55, 0.4, 0.05);  // C7
+    } catch (e) {
+        console.error("Audio error", e);
+    }
+};
+
+export const playSubtractSound = () => {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+
+        const playNote = (freq, startTime, duration, vol) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        };
+
+        const now = ctx.currentTime;
+        // Descending "deflate" arpeggio
+        playNote(523.25, now, 0.12, 0.09);        // C5
+        playNote(415.30, now + 0.06, 0.12, 0.09); // G#4
+        playNote(329.63, now + 0.12, 0.12, 0.09); // E4
+        playNote(220.00, now + 0.18, 0.30, 0.10); // A3
+    } catch(e) {
+        console.error("Audio error", e);
+    }
+};
+
+const EASTER_EGG_NUMBERS = [67, 167, 267, 367];
+
+const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal, onUpdateMedal, onDeleteMedal, settings = {} }) => {
     const [addValue, setAddValue] = useState(1);
     const [subValue, setSubValue] = useState(1);
     const [flyingStars, setFlyingStars] = useState([]);
     const [isGlowing, setIsGlowing] = useState(false);
     const [isMedalModalOpen, setIsMedalModalOpen] = useState(false);
+    const [editingMedal, setEditingMedal] = useState(null);
+    const [easterEggActive, setEasterEggActive] = useState(false);
 
     const prevPointsRef = useRef(student.points);
+    const pendingEasterRef = useRef(null);
+    const dismissEasterRef = useRef(null);
+    const easterPositions = useRef([]);
+    const medalClickRef = useRef({}); // { [medalId]: { count, timer } }
+    const bannersEnabled = settings.bannersEnabled !== false;
 
     useEffect(() => {
         if (student.points > prevPointsRef.current) {
@@ -66,6 +140,39 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
         prevPointsRef.current = student.points;
     }, [student.points]);
 
+    // Easter egg: 67, 167, 267, 367 — must stay for 1.5s to trigger
+    const easterEggEnabled = settings.easterEgg67Enabled !== false;
+    useEffect(() => {
+        clearTimeout(pendingEasterRef.current);
+
+        if (!easterEggEnabled) {
+            setEasterEggActive(false);
+            clearTimeout(dismissEasterRef.current);
+            return;
+        }
+
+        if (!EASTER_EGG_NUMBERS.includes(student.points)) return;
+
+        pendingEasterRef.current = setTimeout(() => {
+            easterPositions.current = Array.from({ length: 28 }, () => ({
+                left: `${Math.random() * 85}%`,
+                top: `${Math.random() * 78}%`,
+                fontSize: `${Math.random() * 16 + 10}px`,
+                rotation: `${Math.random() * 60 - 30}deg`,
+            }));
+            setEasterEggActive(true);
+            clearTimeout(dismissEasterRef.current);
+            dismissEasterRef.current = setTimeout(() => setEasterEggActive(false), 5000);
+        }, 1500);
+
+        return () => clearTimeout(pendingEasterRef.current);
+    }, [student.points, easterEggEnabled]);
+
+    // Cleanup dismiss timer on unmount
+    useEffect(() => {
+        return () => clearTimeout(dismissEasterRef.current);
+    }, []);
+
     const handleAdd = () => {
         const val = parseInt(addValue);
         if (val > 0) {
@@ -79,8 +186,32 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
         const val = parseInt(subValue);
         if (val > 0) {
             onUpdatePoints(student.id, -val);
+            playSubtractSound();
             setSubValue(1);
         }
+    };
+
+    // Medal interactions: 2 clicks → edit, 4 clicks → delete (within 400ms windows)
+    const handleMedalClick = (medal) => {
+        const entry = medalClickRef.current[medal.id] || { count: 0, timer: null };
+        clearTimeout(entry.timer);
+        entry.count += 1;
+
+        if (entry.count >= 4) {
+            entry.count = 0;
+            medalClickRef.current[medal.id] = entry;
+            if (onDeleteMedal) onDeleteMedal(medal.id);
+            return;
+        }
+
+        entry.timer = setTimeout(() => {
+            if (entry.count === 2) {
+                setEditingMedal(medal);
+                setIsMedalModalOpen(true);
+            }
+            entry.count = 0;
+        }, 400);
+        medalClickRef.current[medal.id] = entry;
     };
 
     let bannerClasses = "bg-white border-blue-100 hover:bg-blue-50";
@@ -88,7 +219,7 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
     let rankLabel = null;
     let rankDecoration = null;
 
-    if (rank === 1) {
+    if (bannersEnabled && rank === 1) {
         // STAR MASTER: bright royal gold with floating pixel stars
         bannerClasses = "relative overflow-hidden bg-gradient-to-r from-yellow-100 via-amber-50 to-yellow-100 border-l-[6px] border-l-yellow-400 border-yellow-200 shadow-[inset_0_0_40px_rgba(234,179,8,0.12)]";
         rankBadge = (
@@ -105,17 +236,40 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
             <>
                 <div aria-hidden className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.95),transparent_30%),radial-gradient(circle_at_80%_30%,rgba(250,204,21,0.5),transparent_35%)]" />
                 <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
-                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '10%', bottom: '-15%', animationDelay: '0s' }}><PixelStar level={2} /></span>
-                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '22%', bottom: '-15%', animationDelay: '1.1s' }}><PixelStar level={1} /></span>
-                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '36%', bottom: '-15%', animationDelay: '2.3s' }}><PixelStar level={2} /></span>
-                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '50%', bottom: '-15%', animationDelay: '0.7s' }}><PixelStar level={1} /></span>
-                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '64%', bottom: '-15%', animationDelay: '3.1s' }}><PixelStar level={2} /></span>
-                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '78%', bottom: '-15%', animationDelay: '1.7s' }}><PixelStar level={1} /></span>
-                    <span className="absolute animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]" style={{ left: '90%', bottom: '-15%', animationDelay: '2.8s' }}><PixelStar level={2} /></span>
+                    {[
+                        { left: '4%',  level: 1, scale: 0.9, delay: '0s'    },
+                        { left: '11%', level: 3, scale: 0.6, delay: '1.4s'  },
+                        { left: '17%', level: 2, scale: 0.8, delay: '2.6s'  },
+                        { left: '24%', level: 4, scale: 0.45, delay: '0.5s' },
+                        { left: '31%', level: 1, scale: 1.0, delay: '3.2s'  },
+                        { left: '38%', level: 5, scale: 0.4, delay: '1.8s'  },
+                        { left: '44%', level: 2, scale: 0.7, delay: '0.9s'  },
+                        { left: '51%', level: 1, scale: 0.85,delay: '2.4s'  },
+                        { left: '57%', level: 3, scale: 0.55,delay: '0.2s'  },
+                        { left: '64%', level: 4, scale: 0.5, delay: '1.6s'  },
+                        { left: '70%', level: 2, scale: 0.6, delay: '3.0s'  },
+                        { left: '77%', level: 1, scale: 0.95,delay: '0.7s'  },
+                        { left: '83%', level: 5, scale: 0.4, delay: '2.1s'  },
+                        { left: '89%', level: 3, scale: 0.7, delay: '1.2s'  },
+                        { left: '95%', level: 1, scale: 0.8, delay: '2.8s'  },
+                    ].map((s, i) => (
+                        <span
+                            key={i}
+                            className="absolute"
+                            style={{ left: s.left, bottom: '-15%', transform: `scale(${s.scale})`, transformOrigin: 'bottom center' }}
+                        >
+                            <span
+                                className="animate-star-float drop-shadow-[0_0_6px_rgba(255,255,255,0.9)] block"
+                                style={{ animationDelay: s.delay }}
+                            >
+                                <PixelStar level={s.level} noAnim />
+                            </span>
+                        </span>
+                    ))}
                 </div>
             </>
         );
-    } else if (rank === 2) {
+    } else if (bannersEnabled && rank === 2) {
         // GOLD INGOT: soft metallic with gentle sweeping light
         bannerClasses = "relative overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#fefce8_40%,#fef9c3_65%,#fef3c7_100%)] border-l-[6px] border-l-amber-300 border-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-1px_0_rgba(217,119,6,0.1)]";
         rankBadge = (
@@ -131,7 +285,7 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
         rankDecoration = (
             <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden animate-ingot-shine bg-[linear-gradient(110deg,transparent_42%,rgba(255,255,255,0.45)_49%,rgba(255,255,255,0.6)_50%,rgba(255,255,255,0.45)_51%,transparent_58%)] bg-[length:250%_100%]" />
         );
-    } else if (rank === 3) {
+    } else if (bannersEnabled && rank === 3) {
         // Iron / Silver: steel gradient with polish shine
         bannerClasses = "relative bg-gradient-to-r from-slate-200 via-gray-100 to-slate-200 border-l-[6px] border-l-slate-500 border-slate-300 shadow-[inset_0_0_40px_rgba(100,116,139,0.2)] animate-banner-shine";
         rankBadge = (
@@ -151,12 +305,34 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
 
     return (
         <div className={`group flex items-center justify-between p-4 transition-colors border-b last:border-b-0 relative ${bannerClasses}`}>
+            {/* Easter Egg Overlay */}
+            {easterEggActive && (
+                <div className="absolute inset-0 z-[100] overflow-hidden animate-easter-egg pointer-events-none bg-yellow-400/90">
+                    {easterPositions.current.map((pos, i) => (
+                        <span
+                            key={i}
+                            className="absolute font-black font-mono text-blue-900 select-none opacity-80"
+                            style={{
+                                left: pos.left,
+                                top: pos.top,
+                                fontSize: pos.fontSize,
+                                transform: `rotate(${pos.rotation})`,
+                            }}
+                        >
+                            67
+                        </span>
+                    ))}
+                    <span className="absolute inset-0 flex items-center justify-center text-6xl font-black font-mono text-blue-900 drop-shadow-lg">
+                        67
+                    </span>
+                </div>
+            )}
             {rankDecoration}
             {/* Left: Name */}
             <div className="w-1/3 min-w-[200px] flex items-center gap-3 relative z-10">
                 <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <button
-                        onClick={() => setIsMedalModalOpen(true)}
+                        onClick={() => { setEditingMedal(null); setIsMedalModalOpen(true); }}
                         className="text-amber-500 hover:text-amber-600 hover:brightness-110 transition-colors p-1"
                         title="Award Medal"
                     >
@@ -200,15 +376,17 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
                     {(student.medals && student.medals.length > 0) && (
                         <div className="flex flex-wrap gap-1.5 mt-1">
                             {student.medals.map(m => (
-                                <div
+                                <button
                                     key={m.id}
-                                    title={m.name}
-                                    className="group/medal relative inline-flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-200 via-amber-100 to-yellow-200 border border-amber-500 shadow-[0_2px_0_0_rgba(180,83,9,0.7)] hover:shadow-[0_3px_0_0_rgba(180,83,9,0.9)] hover:-translate-y-0.5 transition-all overflow-hidden"
+                                    type="button"
+                                    onClick={() => handleMedalClick(m)}
+                                    title={`${m.name} — double-click to edit, 4 clicks to remove`}
+                                    className="group/medal relative inline-flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-200 via-amber-100 to-yellow-200 border border-amber-500 shadow-[0_2px_0_0_rgba(180,83,9,0.7)] hover:shadow-[0_3px_0_0_rgba(180,83,9,0.9)] hover:-translate-y-0.5 transition-all overflow-hidden cursor-pointer"
                                 >
                                     <span aria-hidden className="absolute inset-0 opacity-0 group-hover/medal:opacity-100 transition-opacity bg-gradient-to-r from-transparent via-white/70 to-transparent animate-banner-shine-fast pointer-events-none" />
                                     <span className="relative text-base drop-shadow-sm leading-none">{m.icon}</span>
                                     <span className="relative text-[10px] font-black uppercase tracking-wider text-amber-900 font-mono leading-none">{m.name}</span>
-                                </div>
+                                </button>
                             ))}
                         </div>
                     )}
@@ -265,10 +443,12 @@ const StudentCard = ({ student, rank, onUpdatePoints, onDelete, onAddMedal }) =>
                 </div>
             </div>
             
-            <MedalModal 
-                isOpen={isMedalModalOpen} 
-                onClose={() => setIsMedalModalOpen(false)} 
-                onAwardMedal={onAddMedal} 
+            <MedalModal
+                isOpen={isMedalModalOpen}
+                onClose={() => { setIsMedalModalOpen(false); setEditingMedal(null); }}
+                onAwardMedal={onAddMedal}
+                onSaveMedal={(updates) => editingMedal && onUpdateMedal && onUpdateMedal(editingMedal.id, updates)}
+                editingMedal={editingMedal}
                 studentName={student.name}
             />
         </div>

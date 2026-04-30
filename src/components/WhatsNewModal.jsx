@@ -3,52 +3,46 @@ import { X, Sparkles } from 'lucide-react';
 
 const CHANGELOG = [
     {
-        tag: 'Rankings',
+        tag: 'Toolkit',
         color: 'bg-yellow-400 text-yellow-900',
-        title: 'Top 3 Live Ranking Banners',
-        desc: 'The top 3 students by points now get fully themed banners. 1st place earns the ★ Star Master banner — gold gradient with pixel stars floating upward. 2nd place gets a Gold Ingot banner with a sweeping metallic shine. 3rd place receives an Iron/Silver polished steel banner. All ranks show a custom badge icon and label.',
+        title: '🛠 Toolkit — Timer, Groups & Picker',
+        desc: 'New Toolkit button at the top-right of every class. Pick one of three tools: a countdown Timer with quick presets and an alarm; a Group Maker that splits the class into random teams of any size; and a Random Picker that rolls one or more students at random. Each opens from a single landing screen — pick what you need.',
     },
     {
-        tag: 'Animation',
-        color: 'bg-sky-400 text-sky-900',
-        title: 'Flying Stars on Point Gain',
-        desc: 'Whenever a student earns points, pixel stars launch from the right and arc toward their name, flashing gold on impact and glowing the name yellow. When awarding the whole group, every student card fires stars simultaneously.',
+        tag: 'Challenges',
+        color: 'bg-red-500 text-white',
+        title: 'Countdown Blizzard ❄ — new challenge mode',
+        desc: 'The "Challenge!" button now lets you choose between Duels (the classic 1-vs-1) and the brand-new Countdown Blizzard. Pick a stake, a duration (10s · 30s · 1m · 2m) and the participants. The clock starts, and the first student to answer correctly wins the stake. If nobody answers in time, every participant loses the stake. Great for fast-paced review.',
     },
     {
-        tag: 'Sound',
-        color: 'bg-purple-400 text-white',
-        title: 'Magic Sound Effect',
-        desc: 'Adding stars plays a short ascending magical arpeggio (C5 → E5 → G5 → C6) generated entirely in the browser via Web Audio API — no audio files needed. The Group Award plays it once for the whole class.',
+        tag: 'Settings',
+        color: 'bg-blue-500 text-white',
+        title: '⚙️ Settings panel',
+        desc: 'A new Settings button next to "What\'s new" lets you tailor the experience: turn the Top-3 rank banners on/off (handy if you prefer a uniform look), and enable or disable the secret 67 Easter Egg. Settings persist across sessions.',
     },
     {
         tag: 'Medals',
         color: 'bg-amber-500 text-white',
-        title: 'Medal System',
-        desc: 'Each student now has an Award button (hover to reveal, left of the name). Click it to open the Medal modal and give: ⭐ Behavior, ✋ Participation, or a fully custom medal with your own name and emoji. Medals appear as shiny animated gold pills below the student\'s name, visible at all times.',
+        title: 'Edit & remove medals',
+        desc: 'Medals are now interactive. Double-click any medal pill to edit its name and icon. Click it four times in quick succession to remove it. Past awards no longer get stuck — fix typos or retire a medal anytime.',
     },
     {
-        tag: 'Group Tool',
-        color: 'bg-green-500 text-white',
-        title: 'Award All — Group Reward',
-        desc: 'The "Award All" button opens a modal where you pick a star amount and award it to every student in the class at once — stars fly and sound plays for each card.',
-    },
-    {
-        tag: 'Group Tool',
-        color: 'bg-red-500 text-white',
-        title: 'Star Challenge ⚔️',
-        desc: 'A classroom duel mechanic: pick two students and a wager. The loser\'s stars transfer to the winner. Great for competitive review games or pop quizzes.',
+        tag: 'Sound',
+        color: 'bg-purple-400 text-white',
+        title: 'New audio cues',
+        desc: 'Removing stars now plays a short descending tone so subtractions feel deliberate. When a challenge winner is confirmed (Duel or Blizzard), a triumphant fanfare plays — a quick rising arpeggio into a sustained C-major chord with a sparkle on top.',
     },
     {
         tag: 'UX',
         color: 'bg-slate-500 text-white',
-        title: 'Sort Toggle',
-        desc: 'Sort the student list by name (A–Z) or by star count (highest first) using the Sort button in the toolbar.',
+        title: 'Default sort by stars',
+        desc: 'Open any class and students are now ranked by stars (highest first) by default. The Sort button still toggles back to A–Z whenever you want.',
     },
     {
-        tag: 'Stars',
-        color: 'bg-blue-500 text-white',
-        title: 'Extended Evolution Tiers',
-        desc: 'The pixel star evolution system now goes up to Level 10+ with new unique tiers: Diamond (cyan), Fire (orange), Amethyst (purple), Galactic cluster (4-star formation), and a Golden Titan for 2560+ points.',
+        tag: 'Polish',
+        color: 'bg-green-500 text-white',
+        title: 'Star Master banner glow-up',
+        desc: 'The 1st-place banner now floats a richer mix of stars — gold, cyan, purple, red and green pixel stars at varied sizes and timings, drifting upward without distracting jitter. Top spot looks the part.',
     },
 ];
 
@@ -67,7 +61,7 @@ const WhatsNewModal = ({ isOpen, onClose }) => {
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-white font-mono tracking-tight uppercase">What's New</h2>
-                            <p className="text-blue-300 text-xs font-medium">Playground branch · 8 new features</p>
+                            <p className="text-blue-300 text-xs font-medium">Playground branch · 7 new updates</p>
                         </div>
                     </div>
                     <button
